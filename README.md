@@ -70,8 +70,9 @@ For Hardware:
 
 ### Project Demo
 # Video
-[Add your demo video link here]
-*Explain what the video demonstrates*
+for the planets with low gravity than the earth:https://drive.google.com/file/d/1k6m_Ikmh5nJIMBZNrxab67GiNV73ioCc/view?usp=sharing.
+for the planets with high gravity than earth :https://drive.google.com/file/d/11A2J7CEnBve4sKcSCGaylToa1SX6BvyX/view?usp=sharing
+this video show the motion of the chaya aka tea in the different environment in space.
 
 # Additional Demos
 [Add any extra demo materials/links]
