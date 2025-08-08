@@ -1,18 +1,18 @@
 <img width="3188" height="1202" alt="frame (3)" src="https://github.com/user-attachments/assets/517ad8e9-ad22-457d-9538-a9e62d137cd7" />
 
 
-# Universal Chayakkada 🎯
+# Universal Chayakkada 
 
 
 ## Basic Details
-### Team Name: [Name]
+### Team Name: Sooryakrishna M
 
 
 ### Team Members
 - Team Lead:Sooryakrishna M - ICCS College of Engineering and Management
 
 ### Project Description
-[2-3 lines about what your project does]
+what if we expand accross the universe and we have a craving to make a chai and we hire a "chayakadakkaran" into the space. we will need a demo for him the project shows the visualization of 'chaya adikkal' for the referance of the 'chayakkadakaran'.
 
 ### The Problem (that doesn't exist)
 [What ridiculous problem are you solving?]
@@ -23,15 +23,11 @@
 ## Technical Details
 ### Technologies/Components Used
 For Software:
-- [Languages used]
-- [Frameworks used]
-- [Libraries used]
-- [Tools used]
+- HTML,CSS,JS
+- ChatGPT and Bolt
 
 For Hardware:
-- [List main components]
-- [List specifications]
-- [List tools required]
+- nil
 
 ### Implementation
 For Software:
@@ -45,14 +41,9 @@ For Software:
 For Software:
 
 # Screenshots (Add at least 3)
-![Screenshot1](Add screenshot 1 here with proper name)
-*Add caption explaining what this shows*
+<img width="1908" height="975" alt="image" src="https://github.com/user-attachments/assets/1360cf22-3b2a-4de7-859a-d5e25e05ef6c" />
 
-![Screenshot2](Add screenshot 2 here with proper name)
-*Add caption explaining what this shows*
-
-![Screenshot3](Add screenshot 3 here with proper name)
-*Add caption explaining what this shows*
+<img width="1919" height="974" alt="image" src="https://github.com/user-attachments/assets/af174ad8-b94d-46f2-9801-f3a2ce627c11" />
 
 # Diagrams
 ![Workflow](Add your workflow/architecture diagram here)
@@ -86,9 +77,7 @@ For Hardware:
 [Add any extra demo materials/links]
 
 ## Team Contributions
-- [Name 1]: [Specific contributions]
-- [Name 2]: [Specific contributions]
-- [Name 3]: [Specific contributions]
+- done by myself
 
 ---
 Made with ❤️ at TinkerHub Useless Projects 
