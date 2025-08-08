@@ -12,19 +12,19 @@
 - Team Lead:Sooryakrishna M - ICCS College of Engineering and Management
 
 ### Project Description
-what if we expand accross the universe and we have a craving to make a chai and we hire a "chayakadakkaran" into the space. we will need a demo for him the project shows the visualization of 'chaya adikkal' for the referance of the 'chayakkadakaran'.
+Making a website to make the visualization of the "chaya adikkal" in the space.
 
 ### The Problem (that doesn't exist)
-[What ridiculous problem are you solving?]
+what if we expand accross the universe and we have a craving to make a chai and we hire a "chayakadakkaran" into the space. we will need a demo for him the project shows the visualization of 'chaya adikkal' for the referance of the 'chayakkadakaran'.
 
 ### The Solution (that nobody asked for)
-[How are you solving it? Keep it fun!]
+we are providing the fluid mechanics of the chaya so that the 'chayakadakaran' can study the falling chaya to make the 'chaya' cool so that the customer can drink it in optimal temprature. 
 
 ## Technical Details
 ### Technologies/Components Used
 For Software:
 - HTML,CSS,JS
-- ChatGPT and Bolt
+- ChatGPT,Gemini and Bolt
 
 For Hardware:
 - nil
