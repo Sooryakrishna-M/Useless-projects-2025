@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaya Adikkal Simulation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babylonjs/6.0.0/babylon.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100vh;
+            display: block;
+            outline: none;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        .control-panel {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            min-width: 300px;
+            pointer-events: all;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-panel h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-align: center;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #333;
+            color: white;
+        }
+
+        .info-panel {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .gravity-display {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4ecdc4;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            z-index: 2000;
+        }
+
+        .controls-bottom {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">Loading Simulation...</div>
+    
+    <canvas id="renderCanvas"></canvas>
+    
+    <div class="ui-overlay">
+        <div class="control-panel">
+            <h1>Chaya Adikkal Simulator</h1>
+            
+            <div class="control-group">
+                <label for="planetSelect">Select Celestial Body:</label>
+                <select id="planetSelect">
+                    <option value="earth">Earth</option>
+                    <option value="sun">Sun</option>
+                    <option value="mercury">Mercury</option>
+                    <option value="venus">Venus</option>
+                    <option value="moon">Moon</option>
+                    <option value="mars">Mars</option>
+                    <option value="jupiter">Jupiter</option>
+                    <option value="saturn">Saturn</option>
+                    <option value="uranus">Uranus</option>
+                    <option value="neptune">Neptune</option>
+                    <option value="pluto">Pluto</option>
+                </select>
+            </div>
+
+            <div class="gravity-display" id="gravityDisplay">
+                Gravity: 9.807 m/s² (1.0g)
+            </div>
+
+            <div class="info-panel">
+                <strong>About Chaya Adikkal:</strong><br>
+                Traditional Kerala tea pouring technique creating a frothy, aerated beverage through controlled free-fall dynamics.
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-bottom">
+        <strong>Controls:</strong><br>
+        • Mouse: Orbit camera<br>
+        • Scroll: Zoom in/out<br>
+        • Select planets to see gravity effects
+    </div>
+
+    <script>
+        // Planetary gravity data
+        const PLANETARY_DATA = {
+            sun: { gravity: 274.0, earthG: 28.02, name: "Sun" },
+            mercury: { gravity: 3.7, earthG: 0.377, name: "Mercury" },
+            venus: { gravity: 8.87, earthG: 0.905, name: "Venus" },
+            earth: { gravity: 9.807, earthG: 1.0, name: "Earth" },
+            moon: { gravity: 1.62, earthG: 0.1657, name: "Moon" },
+            mars: { gravity: 3.73, earthG: 0.379, name: "Mars" },
+            jupiter: { gravity: 24.79, earthG: 2.528, name: "Jupiter" },
+            saturn: { gravity: 10.44, earthG: 1.065, name: "Saturn" },
+            uranus: { gravity: 8.69, earthG: 0.886, name: "Uranus" },
+            neptune: { gravity: 11.15, earthG: 1.137, name: "Neptune" },
+            pluto: { gravity: 0.62, earthG: 0.063, name: "Pluto" }
+        };
+
+        class ChayaAdikkalSimulation {
+            constructor() {
+                this.canvas = document.getElementById('renderCanvas');
+                this.engine = null;
+                this.scene = null;
+                this.camera = null;
+                this.particles = [];
+                this.maxParticles = 500;
+                this.currentGravity = PLANETARY_DATA.earth.gravity;
+                this.particleSystem = null;
+                this.teaPotPosition = new BABYLON.Vector3(0, 8, 0);
+                this.cupPosition = new BABYLON.Vector3(0, -2, 0);
+                this.isPouring = true;
+                this.pourRate = 0.3;
+                
+                this.init();
+            }
+
+            async init() {
+                // Initialize Babylon.js
+                this.engine = new BABYLON.Engine(this.canvas, true);
+                this.scene = new BABYLON.Scene(this.engine);
+                
+                await this.setupScene();
+                this.setupCamera();
+                this.setupLighting();
+                this.setupEnvironment();
+                this.setupParticleSystem();
+                this.setupPhysicsLoop();
+                this.setupUI();
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Start render loop
+                this.engine.runRenderLoop(() => {
+                    this.scene.render();
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.engine.resize();
+                });
+            }
+
+            async setupScene() {
+                this.scene.createDefaultSkybox();
+                this.scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+                this.scene.fogColor = new BABYLON.Color3(0.9, 0.9, 0.85);
+                this.scene.fogDensity = 0.01;
+            }
+
+            setupCamera() {
+                this.camera = new BABYLON.ArcRotateCamera(
+                    "camera", 
+                    -Math.PI / 2, 
+                    Math.PI / 2.5, 
+                    15, 
+                    new BABYLON.Vector3(0, 3, 0), 
+                    this.scene
+                );
+                this.camera.attachControls(this.canvas, true);
+                this.camera.wheelDeltaPercentage = 0.01;
+                this.camera.lowerRadiusLimit = 8;
+                this.camera.upperRadiusLimit = 25;
+            }
+
+            setupLighting() {
+                // Hemisphere light for ambient lighting
+                const hemisphericLight = new BABYLON.HemisphericLight(
+                    "hemisphericLight", 
+                    new BABYLON.Vector3(0, 1, 0), 
+                    this.scene
+                );
+                hemisphericLight.intensity = 0.6;
+                
+                // Directional light for shadows and highlights
+                const directionalLight = new BABYLON.DirectionalLight(
+                    "directionalLight", 
+                    new BABYLON.Vector3(-1, -1, -1), 
+                    this.scene
+                );
+                directionalLight.intensity = 0.8;
+                directionalLight.position = new BABYLON.Vector3(10, 10, 5);
+            }
+
+            setupEnvironment() {
+                // Create teapot (simplified)
+                const teapot = BABYLON.MeshBuilder.CreateSphere("teapot", {diameter: 1.5}, this.scene);
+                teapot.position = this.teaPotPosition.clone();
+                teapot.position.y += 0.5;
+                
+                const teapotMaterial = new BABYLON.StandardMaterial("teapotMaterial", this.scene);
+                teapotMaterial.diffuseColor = new BABYLON.Color3(0.8, 0.6, 0.4);
+                teapotMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+                teapot.material = teapotMaterial;
+
+                // Create spout
+                const spout = BABYLON.MeshBuilder.CreateCylinder("spout", {
+                    height: 0.5,
+                    diameterTop: 0.2,
+                    diameterBottom: 0.3,
+                }, this.scene);
+                spout.position = this.teaPotPosition.clone();
+                spout.position.x += 0.8;
+                spout.rotation.z = -Math.PI / 6;
+                spout.material = teapotMaterial;
+
+                // Create cup
+                const cup = BABYLON.MeshBuilder.CreateCylinder("cup", {
+                    height: 1.5,
+                    diameterTop: 2,
+                    diameterBottom: 1.5,
+                }, this.scene);
+                cup.position = this.cupPosition.clone();
+                
+                const cupMaterial = new BABYLON.StandardMaterial("cupMaterial", this.scene);
+                cupMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+                cupMaterial.specularColor = new BABYLON.Color3(0.3, 0.3, 0.3);
+                cup.material = cupMaterial;
+
+                // Create ground plane
+                const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 20}, this.scene);
+                ground.position.y = -3;
+                
+                const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", this.scene);
+                groundMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.5, 0.3);
+                groundMaterial.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+                ground.material = groundMaterial;
+            }
+
+            setupParticleSystem() {
+                // Create particle system for tea droplets
+                this.particleSystem = new BABYLON.ParticleSystem("teaParticles", this.maxParticles, this.scene);
+                
+                // Particle texture (create a simple brown circle)
+                const particleTexture = new BABYLON.DynamicTexture("particleTexture", 64, this.scene);
+                const context = particleTexture.getContext();
+                const gradient = context.createRadialGradient(32, 32, 0, 32, 32, 32);
+                gradient.addColorStop(0, "rgba(139, 69, 19, 1)");    // Brown center
+                gradient.addColorStop(0.7, "rgba(160, 82, 45, 0.8)"); // Lighter brown
+                gradient.addColorStop(1, "rgba(139, 69, 19, 0)");      // Transparent edge
+                
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, 64, 64);
+                particleTexture.update();
+                
+                this.particleSystem.particleTexture = particleTexture;
+                
+                // Configure particle system
+                this.particleSystem.emitter = this.teaPotPosition;
+                this.particleSystem.minEmitBox = new BABYLON.Vector3(-0.1, 0, -0.1);
+                this.particleSystem.maxEmitBox = new BABYLON.Vector3(0.1, 0, 0.1);
+                
+                this.particleSystem.color1 = new BABYLON.Color4(0.8, 0.4, 0.2, 1.0);
+                this.particleSystem.color2 = new BABYLON.Color4(0.6, 0.3, 0.1, 1.0);
+                this.particleSystem.colorDead = new BABYLON.Color4(0.4, 0.2, 0.1, 0.0);
+                
+                this.particleSystem.minSize = 0.1;
+                this.particleSystem.maxSize = 0.3;
+                
+                this.particleSystem.minLifeTime = 3.0;
+                this.particleSystem.maxLifeTime = 5.0;
+                
+                this.particleSystem.emitRate = 50;
+                
+                // Set initial velocity (downward stream)
+                this.particleSystem.direction1 = new BABYLON.Vector3(-0.2, -2, -0.2);
+                this.particleSystem.direction2 = new BABYLON.Vector3(0.2, -1, 0.2);
+                
+                this.particleSystem.gravity = new BABYLON.Vector3(0, -this.currentGravity, 0);
+                
+                this.particleSystem.start();
+            }
+
+            setupPhysicsLoop() {
+                let lastTime = performance.now();
+                
+                this.scene.onBeforeRenderObservable.add(() => {
+                    const currentTime = performance.now();
+                    const deltaTime = (currentTime - lastTime) / 1000.0; // Convert to seconds
+                    lastTime = currentTime;
+                    
+                    this.updatePhysics(deltaTime);
+                });
+            }
+
+            updatePhysics(deltaTime) {
+                // Update gravity in particle system
+                this.particleSystem.gravity = new BABYLON.Vector3(0, -this.currentGravity, 0);
+                
+                // Simulate stream thinning by adjusting particle size based on velocity
+                // This is a simplified approximation of conservation of mass
+                const particles = this.particleSystem.particles;
+                
+                for (let i = 0; i < particles.length; i++) {
+                    const particle = particles[i];
+                    
+                    if (particle) {
+                        // Calculate velocity magnitude
+                        const velocity = Math.sqrt(
+                            particle.direction.x * particle.direction.x +
+                            particle.direction.y * particle.direction.y +
+                            particle.direction.z * particle.direction.z
+                        );
+                        
+                        // Stream thinning: as velocity increases, size decreases
+                        const baseSize = 0.2;
+                        const velocityFactor = Math.max(0.3, 1.0 / (1.0 + velocity * 0.1));
+                        particle.size = baseSize * velocityFactor;
+                        
+                        // Add some randomness for jet breakup effect
+                        if (Math.random() < 0.01 && velocity > 5) {
+                            particle.direction.x += (Math.random() - 0.5) * 0.5;
+                            particle.direction.z += (Math.random() - 0.5) * 0.5;
+                        }
+                        
+                        // Simulate splash when hitting the cup area
+                        if (particle.position.y < -1.5 && 
+                            Math.abs(particle.position.x) < 1 && 
+                            Math.abs(particle.position.z) < 1) {
+                            
+                            // Create splash effect
+                            particle.direction.x += (Math.random() - 0.5) * 2;
+                            particle.direction.z += (Math.random() - 0.5) * 2;
+                            particle.direction.y = Math.abs(particle.direction.y) * 0.3; // Bounce up slightly
+                        }
+                    }
+                }
+            }
+
+            setupUI() {
+                const planetSelect = document.getElementById('planetSelect');
+                const gravityDisplay = document.getElementById('gravityDisplay');
+                
+                planetSelect.addEventListener('change', (e) => {
+                    const selectedPlanet = e.target.value;
+                    const planetData = PLANETARY_DATA[selectedPlanet];
+                    
+                    this.currentGravity = planetData.gravity;
+                    
+                    gravityDisplay.textContent = 
+                        `Gravity: ${planetData.gravity} m/s² (${planetData.earthG}g)`;
+                    
+                    // Visual feedback for extreme gravity changes
+                    if (planetData.gravity > 20) {
+                        gravityDisplay.style.color = '#ff4757'; // Red for high gravity
+                    } else if (planetData.gravity < 2) {
+                        gravityDisplay.style.color = '#7bed9f'; // Green for low gravity
+                    } else {
+                        gravityDisplay.style.color = '#4ecdc4'; // Default color
+                    }
+                });
+            }
+        }
+
+        // Initialize the simulation when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            new ChayaAdikkalSimulation();
+        });
+
+        // Handle engine disposal on page unload
+        window.addEventListener('beforeunload', () => {
+            if (window.simulation && window.simulation.engine) {
+                window.simulation.engine.dispose();
+            }
+        });
+    </script>
+</body>
+</html>
